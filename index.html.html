@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Control — Dental Total</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6F7F9;
+    --surface:#FFFFFF;
+    --border:#E4E7EC;
+    --ink:#1B1E24;
+    --ink-soft:#6B7280;
+    --ink-faint:#9AA1AC;
+
+    --sistemas:#3E63DD;
+    --sistemas-bg:#EEF1FE;
+    --administracion:#B8790A;
+    --administracion-bg:#FCF3E3;
+    --rrhh:#188A76;
+    --rrhh-bg:#E8F6F3;
+    --comercial:#6E45E2;
+    --comercial-bg:#F1ECFD;
+
+    --danger:#D0393E;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;}
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
+
+  /* ---------- LOGIN ---------- */
+  #login{
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:36px;padding:24px;
+  }
+  #login .brand{text-align:center;}
+  #login .brand .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;}
+  #login .brand h1{font-size:28px;margin:6px 0 0;font-weight:700;}
+  .area-grid{display:grid;grid-template-columns:repeat(4,180px);gap:16px;}
+  @media (max-width:760px){.area-grid{grid-template-columns:repeat(2,160px);}}
+  .area-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:22px 16px;cursor:pointer;text-align:left;transition:.15s ease;position:relative;overflow:hidden;
+  }
+  .area-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(20,22,30,.06);}
+  .area-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent);}
+  .area-card .icon{width:26px;height:26px;margin-bottom:14px;color:var(--accent);}
+  .area-card .name{font-weight:600;font-size:15px;}
+  .area-card .sub{font-size:12px;color:var(--ink-soft);margin-top:3px;}
+
+  /* ---------- APP SHELL ---------- */
+  #app{display:none;min-height:100vh;}
+  #app.active{display:flex;}
+  .sidebar{
+    width:64px;background:var(--surface);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:10px;flex-shrink:0;
+  }
+  .sidebar .mark{width:28px;height:28px;border-radius:7px;background:var(--ink);margin-bottom:18px;}
+  .side-btn{
+    width:40px;height:40px;border-radius:9px;border:none;background:transparent;color:var(--ink-faint);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;
+  }
+  .side-btn svg{width:19px;height:19px;}
+  .side-btn.active{background:var(--accent-bg);color:var(--accent);}
+  .side-btn.active::after{content:"";position:absolute;left:-14px;top:8px;bottom:8px;width:3px;background:var(--accent);border-radius:3px;}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .topbar{
+    height:64px;border-bottom:1px solid var(--border);display:flex;align-items:center;
+    justify-content:space-between;padding:0 28px;background:var(--surface);flex-shrink:0;
+  }
+  .topbar .title-wrap{display:flex;align-items:center;gap:12px;}
+  .topbar .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);}
+  .topbar h2{margin:0;font-size:17px;font-weight:600;}
+  .topbar .role{font-size:12px;color:var(--ink-soft);}
+  .switch-btn{
+    font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--ink-soft);
+    background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 14px;cursor:pointer;
+  }
+  .switch-btn:hover{color:var(--ink);}
+
+  .content{padding:26px 28px;overflow-y:auto;flex:1;}
+  .subtabs{display:flex;gap:6px;margin-bottom:20px;}
+  .subtab{
+    font-family:'Inter',sans-serif;font-size:13px;font-weight:600;padding:8px 16px;border-radius:8px;
+    border:1px solid var(--border);background:var(--surface);color:var(--ink-soft);cursor:pointer;
+  }
+  .subtab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+  .workspace{display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start;}
+  @media (max-width:980px){.workspace{grid-template-columns:1fr;}}
+
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;}
+  .panel h3{margin:0 0 3px;font-size:15px;font-weight:600;}
+  .panel .hint{font-size:12.5px;color:var(--ink-soft);margin:0 0 18px;}
+  label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin:14px 0 6px;}
+  label:first-of-type{margin-top:0;}
+  input,textarea,select{
+    width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;
+    font-family:'Inter',sans-serif;font-size:13.5px;color:var(--ink);background:var(--bg);
+  }
+  textarea{resize:vertical;min-height:64px;}
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent;}
+  .submit-btn{
+    margin-top:18px;width:100%;padding:11px;border:none;border-radius:8px;background:var(--accent);
+    color:#fff;font-family:'Inter',sans-serif;font-weight:600;font-size:13.5px;cursor:pointer;
+  }
+  .submit-btn:hover{filter:brightness(1.06);}
+
+  .board{display:grid;gap:14px;}
+  .board.cols-3{grid-template-columns:repeat(3,1fr);}
+  .board.cols-4{grid-template-columns:repeat(4,1fr);}
+  @media (max-width:980px){.board.cols-3,.board.cols-4{grid-template-columns:1fr;}}
+  .column{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);min-height:220px;}
+  .column-head{
+    padding:12px 14px;border-bottom:1px solid var(--border);border-top:3px solid var(--accent);
+    border-radius:var(--radius) var(--radius) 0 0;display:flex;justify-content:space-between;align-items:center;
+  }
+  .column-head span.name{font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+  .column-head span.count{font-size:11.5px;color:var(--ink-faint);background:var(--bg);padding:2px 7px;border-radius:20px;}
+  .column-body{padding:10px;display:flex;flex-direction:column;gap:8px;}
+  .empty{font-size:12px;color:var(--ink-faint);text-align:center;padding:20px 8px;}
+  .card{
+    background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:11px 12px;font-size:13px;
+  }
+  .card .ctitle{font-weight:600;margin-bottom:3px;}
+  .card .cmeta{font-size:11.5px;color:var(--ink-soft);margin-bottom:8px;}
+  .card .badge{
+    display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;margin-bottom:6px;
+  }
+  .badge.alta{background:#FBE7E7;color:var(--danger);}
+  .badge.media{background:#FDF3DC;color:#9A6700;}
+  .badge.baja{background:#E7F3E9;color:#227A3E;}
+  .card select{padding:5px 8px;font-size:12px;margin-top:2px;}
+
+  /* Comercial placeholder */
+  .comercial-note{
+    background:var(--comercial-bg);border:1px dashed #C9B8F7;border-radius:var(--radius);
+    padding:16px 18px;font-size:13px;color:#4B2FA0;margin-bottom:20px;
+  }
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  @media (max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
+  .kpi .label{font-size:11.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;font-weight:600;}
+  .kpi .value{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;margin-top:6px;}
+  .kpi .delta{font-size:12px;margin-top:4px;font-weight:600;}
+  .delta.up{color:#227A3E;} .delta.down{color:var(--danger);}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="login">
+  <div class="brand">
+    <div class="eyebrow">Dental Total</div>
+    <h1>Panel de Control por Áreas</h1>
+  </div>
+  <div class="area-grid">
+    <button class="area-card" style="--accent:#3E63DD" onclick="login('sistemas')">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      <div class="name">Sistemas</div>
+      <div class="sub">Soporte técnico</div>
+    </button>
+    <button class="area-card" style="--accent:#B8790A" onclick="login('administracion')">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/></svg>
+      <div class="name">Administración</div>
+      <div class="sub">Compras</div>
+    </button>
+    <button class="area-card" style="--accent:#188A76" onclick="login('rrhh')">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="8.5" r="2.4"/><path d="M16 14.3c2.6.4 4.5 2.3 4.5 5.2"/></svg>
+      <div class="name">RRHH</div>
+      <div class="sub">Soporte y compras</div>
+    </button>
+    <button class="area-card" style="--accent:#6E45E2" onclick="login('comercial')">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M4 19h16"/></svg>
+      <div class="name">Comercial</div>
+      <div class="sub">Indicadores</div>
+    </button>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="main">
+    <div class="topbar">
+      <div class="title-wrap">
+        <div class="dot" id="topDot"></div>
+        <div>
+          <h2 id="topTitle">—</h2>
+          <div class="role" id="topRole">Vista de área</div>
+        </div>
+      </div>
+      <button class="switch-btn" onclick="logout()">Cambiar de área</button>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<script>
+const AREAS = {
+  sistemas:      {label:'Sistemas',      accent:'#3E63DD', bg:'#EEF1FE'},
+  administracion:{label:'Administración',accent:'#B8790A', bg:'#FCF3E3'},
+  rrhh:          {label:'RRHH',          accent:'#188A76', bg:'#E8F6F3'},
+  comercial:     {label:'Comercial',     accent:'#6E45E2', bg:'#F1ECFD'}
+};
+
+const ICONS = {
+  sistemas:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  administracion:'<path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/>',
+  rrhh:'<circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="8.5" r="2.4"/><path d="M16 14.3c2.6.4 4.5 2.3 4.5 5.2"/>',
+  comercial:'<path d="M4 19V9M10 19V5M16 19v-7M4 19h16"/>'
+};
+
+let currentArea = null;
+let rrhhTab = 'soporte';
+let idCounter = 1;
+
+// datos en memoria — separados por área (Sistemas y RRHH NO comparten tablero de soporte;
+// Administración y RRHH NO comparten tablero de compras)
+let tickets = [
+  {id:idCounter++, area:'sistemas', titulo:'No abre el sistema de turnos', prioridad:'alta', solicitante:'Recepción Apolonia Centro', estado:'Pendiente'},
+  {id:idCounter++, area:'sistemas', titulo:'Impresora fiscal sin conexión', prioridad:'media', solicitante:'Adm. Titanium Norte', estado:'En curso'},
+];
+let compras = [
+  {id:idCounter++, area:'administracion', item:'Sillón dental - repuesto', monto:'450.000', urgencia:'alta', entidad:'Orion Belgrano', estado:'Pendiente'},
+];
+
+function login(area){
+  currentArea = area;
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').classList.add('active');
+  buildSidebar();
+  renderTop();
+  renderContent();
+}
+function logout(){
+  currentArea = null;
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('login').style.display='flex';
+}
+
+function buildSidebar(){
+  const sb = document.getElementById('sidebar');
+  sb.innerHTML = '<div class="mark"></div>' + Object.keys(AREAS).map(key=>{
+    const a = AREAS[key];
+    const active = key===currentArea ? 'active' : '';
+    return `<button class="side-btn ${active}" style="--accent:${a.accent};--accent-bg:${a.bg}" title="${a.label}" onclick="login('${key}')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${ICONS[key]}</svg>
+    </button>`;
+  }).join('');
+}
+
+function renderTop(){
+  const a = AREAS[currentArea];
+  document.documentElement.style.setProperty('--accent', a.accent);
+  document.documentElement.style.setProperty('--accent-bg', a.bg);
+  document.getElementById('topDot').style.background = a.accent;
+  document.getElementById('topTitle').textContent = a.label;
+  document.getElementById('topRole').textContent = 'Sesión activa · Rol: ' + a.label;
+}
+
+function renderContent(){
+  const c = document.getElementById('content');
+  if(currentArea==='sistemas') c.innerHTML = viewSoporte('sistemas');
+  else if(currentArea==='administracion') c.innerHTML = viewCompras('administracion');
+  else if(currentArea==='rrhh') c.innerHTML = viewRRHH();
+  else if(currentArea==='comercial') c.innerHTML = viewComercial();
+  attachHandlers();
+}
+
+function viewSoporte(area){
+  return `
+  <div class="workspace">
+    ${formSoporte(area)}
+    ${boardSoporte(area)}
+  </div>`;
+}
+function viewCompras(area){
+  return `
+  <div class="workspace">
+    ${formCompras(area)}
+    ${boardCompras(area)}
+  </div>`;
+}
+function viewRRHH(){
+  return `
+  <div class="subtabs">
+    <button class="subtab ${rrhhTab==='soporte'?'active':''}" onclick="setRrhhTab('soporte')">Solicitar soporte</button>
+    <button class="subtab ${rrhhTab==='compras'?'active':''}" onclick="setRrhhTab('compras')">Solicitar compra</button>
+  </div>
+  ${rrhhTab==='soporte' ? viewSoporte('rrhh') : viewCompras('rrhh')}
+  `;
+}
+function setRrhhTab(t){ rrhhTab = t; renderContent(); }
+
+function viewComercial(){
+  return `
+  <div class="comercial-note">
+    Esta área muestra los indicadores comerciales que ya publicaste en Vercel. En la versión final,
+    este espacio embebe ese dashboard (iframe o import directo si vive en el mismo proyecto) — acá va
+    una vista de referencia para mantener la coherencia visual del panel.
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="label">Facturación del mes</div><div class="value">$182.4M</div><div class="delta up">+6.2% vs. mes anterior</div></div>
+    <div class="kpi"><div class="label">Turnos agendados</div><div class="value">3.412</div><div class="delta up">+3.8%</div></div>
+    <div class="kpi"><div class="label">Tasa de conversión</div><div class="value">41%</div><div class="delta down">-1.1%</div></div>
+    <div class="kpi"><div class="label">Clínicas activas</div><div class="value">73</div><div class="delta up">+1</div></div>
+  </div>`;
+}
+
+// ---------- FORMULARIOS ----------
+function formSoporte(area){
+  return `
+  <div class="panel">
+    <h3>Solicitud de soporte</h3>
+    <p class="hint">Se carga directo en el tablero de ${AREAS[area].label}.</p>
+    <form onsubmit="return addTicket(event,'${area}')">
+      <label>Título</label>
+      <input required name="titulo" placeholder="Ej: Falla en balanza digital">
+      <label>Descripción</label>
+      <textarea name="descripcion" placeholder="Detalle del problema"></textarea>
+      <label>Prioridad</label>
+      <select name="prioridad"><option value="baja">Baja</option><option value="media" selected>Media</option><option value="alta">Alta</option></select>
+      <label>Solicitante / Clínica</label>
+      <input required name="solicitante" placeholder="Ej: Recepción Titanium Centro">
+      <button class="submit-btn" type="submit">Enviar solicitud</button>
+    </form>
+  </div>`;
+}
+function formCompras(area){
+  return `
+  <div class="panel">
+    <h3>Solicitud de compra</h3>
+    <p class="hint">Se carga directo en el tablero de ${AREAS[area].label}.</p>
+    <form onsubmit="return addCompra(event,'${area}')">
+      <label>Ítem</label>
+      <input required name="item" placeholder="Ej: Set de fresas quirúrgicas">
+      <label>Monto estimado ($)</label>
+      <input required name="monto" placeholder="Ej: 120.000">
+      <label>Justificación</label>
+      <textarea name="justificacion" placeholder="Motivo de la compra"></textarea>
+      <label>Urgencia</label>
+      <select name="urgencia"><option value="baja">Baja</option><option value="media" selected>Media</option><option value="alta">Alta</option></select>
+      <label>Clínica / Entidad</label>
+      <input required name="entidad" placeholder="Ej: Apolonia Belgrano">
+      <button class="submit-btn" type="submit">Enviar solicitud</button>
+    </form>
+  </div>`;
+}
+
+// ---------- TABLEROS ----------
+function boardSoporte(area){
+  const estados = ['Pendiente','En curso','Resuelto'];
+  const items = tickets.filter(t=>t.area===area);
+  return `<div class="board cols-3">${estados.map(est=>columnSoporte(est,items.filter(i=>i.estado===est))).join('')}</div>`;
+}
+function columnSoporte(estado,items){
+  return `<div class="column">
+    <div class="column-head"><span class="name">${estado}</span><span class="count">${items.length}</span></div>
+    <div class="column-body">
+      ${items.length? items.map(i=>`
+        <div class="card">
+          <span class="badge ${i.prioridad}">${i.prioridad}</span>
+          <div class="ctitle">${i.titulo}</div>
+          <div class="cmeta">${i.solicitante}</div>
+          ${estadoSelect('ticket',i.id,['Pendiente','En curso','Resuelto'],i.estado)}
+        </div>`).join('') : '<div class="empty">Sin solicitudes</div>'}
+    </div>
+  </div>`;
+}
+function boardCompras(area){
+  const estados = ['Pendiente','Aprobada','Rechazada','Comprada'];
+  const items = compras.filter(c=>c.area===area);
+  return `<div class="board cols-4">${estados.map(est=>columnCompras(est,items.filter(i=>i.estado===est))).join('')}</div>`;
+}
+function columnCompras(estado,items){
+  return `<div class="column">
+    <div class="column-head"><span class="name">${estado}</span><span class="count">${items.length}</span></div>
+    <div class="column-body">
+      ${items.length? items.map(i=>`
+        <div class="card">
+          <span class="badge ${i.urgencia}">${i.urgencia}</span>
+          <div class="ctitle">${i.item}</div>
+          <div class="cmeta">${i.entidad} · $${i.monto}</div>
+          ${estadoSelect('compra',i.id,['Pendiente','Aprobada','Rechazada','Comprada'],i.estado)}
+        </div>`).join('') : '<div class="empty">Sin solicitudes</div>'}
+    </div>
+  </div>`;
+}
+function estadoSelect(tipo,id,opts,current){
+  return `<select onchange="moveItem('${tipo}',${id},this.value)">
+    ${opts.map(o=>`<option value="${o}" ${o===current?'selected':''}>${o}</option>`).join('')}
+  </select>`;
+}
+function moveItem(tipo,id,nuevoEstado){
+  const list = tipo==='ticket' ? tickets : compras;
+  const item = list.find(i=>i.id===id);
+  if(item){ item.estado = nuevoEstado; renderContent(); }
+}
+
+function addTicket(e,area){
+  e.preventDefault();
+  const f = e.target;
+  tickets.push({
+    id:idCounter++, area,
+    titulo:f.titulo.value, descripcion:f.descripcion.value,
+    prioridad:f.prioridad.value, solicitante:f.solicitante.value, estado:'Pendiente'
+  });
+  renderContent();
+  return false;
+}
+function addCompra(e,area){
+  e.preventDefault();
+  const f = e.target;
+  compras.push({
+    id:idCounter++, area,
+    item:f.item.value, monto:f.monto.value, justificacion:f.justificacion.value,
+    urgencia:f.urgencia.value, entidad:f.entidad.value, estado:'Pendiente'
+  });
+  renderContent();
+  return false;
+}
+function attachHandlers(){}
+</script>
+</body>
+</html>
